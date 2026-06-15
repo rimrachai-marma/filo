@@ -1,0 +1,205 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum FileType {
+  IMAGE
+  VIDEO
+  PDF
+  AUDIO
+}
+
+model Admin {
+  id                 String              @id @default(cuid())
+  email              String              @unique
+  password           String
+  createdAt          DateTime            @default(now())
+  adminRefreshTokens AdminRefreshToken[]
+}
+
+model SubscriptionPackage {
+  id                String             @id @default(cuid())
+  name              String             @unique
+  displayName       String
+  maxFolders        Int
+  maxNestingLevel   Int
+  allowedFileTypes  FileType[]
+  maxFileSizeBytes  Int
+  totalFileLimit    Int
+  filesPerFolder    Int
+  storageLimitBytes BigInt             @default(536870912)
+  tierColor         String             @default("#38bdf8")
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  userSubscriptions UserSubscription[]
+}
+
+model User {
+  id                  String                   @id @default(cuid())
+  email               String                   @unique
+  password            String
+  name                String
+  emailVerified       Boolean                  @default(false)
+  createdAt           DateTime                 @default(now())
+  subscriptions       UserSubscription[]
+  folders             Folder[]
+  files               File[]
+  multipartSessions   MultipartUploadSession[]
+  shareLinks          ShareLink[]
+  verificationTokens  EmailVerificationToken[]
+  passwordResetTokens PasswordResetToken[]
+  refreshTokens       RefreshToken[]
+}
+
+model RefreshToken {
+  id        String    @id @default(cuid())
+  userId    String
+  token     String    @unique
+  expiresAt DateTime
+  createdAt DateTime  @default(now())
+  revokedAt DateTime?
+  userAgent String?
+  ipAddress String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model AdminRefreshToken {
+  id        String    @id @default(cuid())
+  adminId   String
+  token     String    @unique
+  expiresAt DateTime
+  createdAt DateTime  @default(now())
+  revokedAt DateTime?
+  userAgent String?
+  ipAddress String?
+
+  admin Admin @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@index([adminId])
+}
+
+model EmailVerificationToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model UserSubscription {
+  id        String              @id @default(cuid())
+  userId    String
+  packageId String
+  user      User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  package   SubscriptionPackage @relation(fields: [packageId], references: [id])
+  startDate DateTime            @default(now())
+  endDate   DateTime?
+  isActive  Boolean             @default(true)
+  createdAt DateTime            @default(now())
+
+  @@index([userId, isActive])
+}
+
+model Folder {
+  id         String      @id @default(cuid())
+  name       String
+  userId     String
+  parentId   String?
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent     Folder?     @relation("FolderChildren", fields: [parentId], references: [id], onDelete: Cascade)
+  children   Folder[]    @relation("FolderChildren")
+  files      File[]
+  shareLinks ShareLink[]
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+}
+
+model File {
+  id         String      @id @default(cuid())
+  name       String
+  userId     String
+  folderId   String
+  type       FileType
+  sizeBytes  Int
+  path       String
+  mimeType   String
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  folder     Folder      @relation(fields: [folderId], references: [id], onDelete: Cascade)
+  shareLinks ShareLink[]
+}
+
+enum UploadStatus {
+  PENDING
+  COMPLETED
+  ABORTED
+}
+
+model MultipartUploadSession {
+  id         String       @id @default(cuid())
+  userId     String
+  folderId   String
+  uploadId   String
+  r2Key      String
+  fileName   String
+  mimeType   String
+  sizeBytes  Int
+  totalParts Int
+  status     UploadStatus @default(PENDING)
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  expiresAt  DateTime
+
+  user  User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parts MultipartUploadPart[]
+
+  @@index([userId, status])
+}
+
+model MultipartUploadPart {
+  id         String   @id @default(cuid())
+  sessionId  String
+  partNumber Int
+  etag       String
+  sizeBytes  Int
+  uploadedAt DateTime @default(now())
+
+  session MultipartUploadSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, partNumber])
+}
+
+model ShareLink {
+  id        String    @id @default(cuid())
+  token     String    @unique
+  userId    String
+  fileId    String?
+  folderId  String?
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  file   File?   @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  folder Folder? @relation(fields: [folderId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
