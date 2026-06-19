@@ -5,6 +5,17 @@ import { cookies } from "next/headers";
 import { User, Admin } from "./types";
 import { adminTokenVerify, userTokenVerify } from "./lib/actions/auth";
 
+const cookieOptions = (maxAgeSeconds: number) => ({
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "lax" as const,
+  domain: process.env.NODE_ENV === "production" ? process.env.COOKIE_DOMAIN : undefined,
+  path: "/",
+  maxAge: maxAgeSeconds,
+});
+const ACCESS_TOKEN_MAX_AGE = 15 * 60; // 15 minutes, in seconds
+const REFRESH_TOKEN_MAX_AGE = 30 * 24 * 60 * 60; // 30 days, in seconds
+
 const userPublicRoutes = ["/", "/share", "/auth/verify-email", "/auth/forgot-password", "/auth/reset-password"];
 const userAuthRoutes = ["/auth/login", "/auth/signup"];
 const userProtectedRoutes = ["/dashboard", "/dashboard/subscription", "/dashboard/folders"];
@@ -71,20 +82,8 @@ export async function proxy(req: NextRequest) {
     if (newTokens) {
       const response = NextResponse.next();
 
-      response.cookies.set("admin_access_token", newTokens.access, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax" as "none" | "lax",
-        domain: ".rimrachai.com",
-        path: "/",
-      });
-      response.cookies.set("admin_refresh_token", newTokens.refresh, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax" as "none" | "lax",
-        domain: ".rimrachai.com",
-        path: "/",
-      });
+      response.cookies.set("admin_access_token", newTokens.access, cookieOptions(ACCESS_TOKEN_MAX_AGE));
+      response.cookies.set("admin_refresh_token", newTokens.refresh, cookieOptions(REFRESH_TOKEN_MAX_AGE));
 
       return response;
     }
@@ -123,20 +122,8 @@ export async function proxy(req: NextRequest) {
     if (newTokens) {
       const response = NextResponse.next();
 
-      response.cookies.set("user_access_token", newTokens.access, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax" as "none" | "lax",
-        domain: ".rimrachai.com",
-        path: "/",
-      });
-      response.cookies.set("user_refresh_token", newTokens.refresh, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax" as "none" | "lax",
-        domain: ".rimrachai.com",
-        path: "/",
-      });
+      response.cookies.set("user_access_token", newTokens.access, cookieOptions(ACCESS_TOKEN_MAX_AGE));
+      response.cookies.set("user_refresh_token", newTokens.refresh, cookieOptions(REFRESH_TOKEN_MAX_AGE));
 
       return response;
     }

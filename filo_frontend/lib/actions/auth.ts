@@ -243,20 +243,23 @@ export async function adminLogoutAllDevices(): Promise<MutationState> {
   return result;
 }
 
-const COOKIE_OPTS = {
+const cookieOptions = (maxAgeSeconds: number) => ({
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
   sameSite: "lax" as const,
   domain: process.env.NODE_ENV === "production" ? process.env.COOKIE_DOMAIN : undefined,
   path: "/",
-};
+  maxAge: maxAgeSeconds,
+});
+const ACCESS_TOKEN_MAX_AGE = 15 * 60; // 15 minutes, in seconds
+const REFRESH_TOKEN_MAX_AGE = 30 * 24 * 60 * 60; // 30 days, in seconds
 
 export type TokenKind = "user" | "admin";
 
 export async function saveTokens(accessToken: string, refreshToken: string, kind: TokenKind = "user") {
   const store = await cookies();
-  store.set(`${kind}_access_token`, accessToken, COOKIE_OPTS);
-  store.set(`${kind}_refresh_token`, refreshToken, COOKIE_OPTS);
+  store.set(`${kind}_access_token`, accessToken, cookieOptions(ACCESS_TOKEN_MAX_AGE));
+  store.set(`${kind}_refresh_token`, refreshToken, cookieOptions(REFRESH_TOKEN_MAX_AGE));
 }
 
 export async function clearTokens(kind: TokenKind = "user") {
