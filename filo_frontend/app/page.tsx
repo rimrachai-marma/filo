@@ -5,6 +5,7 @@ import HeroSection from "@/components/landing/HeroSection";
 import PerksBarSection from "@/components/landing/PerksBarSection";
 import PricingSection from "@/components/landing/PricingSection";
 import FeaturesSection from "@/components/landing/FeaturesSection";
+import BackendWaker from "@/components/BackendWaker";
 
 export default function Home() {
   return (
