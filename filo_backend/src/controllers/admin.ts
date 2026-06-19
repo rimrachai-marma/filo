@@ -7,14 +7,15 @@ import { extractBearer } from "@/utils/helpers";
 const REFRESH_COOKIE = "admin_refresh_token";
 const ACCESS_COOKIE = "admin_access_token";
 
-const cookieOptions = (maxAgeMs: number) => ({
+const baseCookieOptions = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
   sameSite: "lax" as const,
-  maxAge: maxAgeMs,
   domain: process.env.NODE_ENV === "production" ? process.env.COOKIE_DOMAIN : undefined,
   path: "/",
-});
+};
+
+const cookieOptions = (maxAgeMs: number) => ({ ...baseCookieOptions, maxAge: maxAgeMs });
 
 export class AdminController {
   private adminService: AdminService;
