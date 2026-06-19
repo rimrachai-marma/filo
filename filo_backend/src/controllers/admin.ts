@@ -83,8 +83,8 @@ export class AdminController {
     const refreshToken: string | undefined = req.cookies?.[REFRESH_COOKIE] ?? extractBearer(req);
     await this.adminService.logout(refreshToken);
 
-    res.clearCookie(ACCESS_COOKIE);
-    res.clearCookie(REFRESH_COOKIE);
+    res.clearCookie(ACCESS_COOKIE, baseCookieOptions);
+    res.clearCookie(REFRESH_COOKIE, baseCookieOptions);
 
     res.json({ status: "success", message: "Logged out successfully" });
   });
@@ -92,8 +92,8 @@ export class AdminController {
   logoutAll = asyncHandler(async (req: Request, res: Response) => {
     await this.adminService.logoutAll(req.admin!.id);
 
-    res.clearCookie(ACCESS_COOKIE);
-    res.clearCookie(REFRESH_COOKIE);
+    res.clearCookie(ACCESS_COOKIE, baseCookieOptions);
+    res.clearCookie(REFRESH_COOKIE, baseCookieOptions);
 
     res.json({ status: "success", message: "Logged out from all devices successfully" });
   });
