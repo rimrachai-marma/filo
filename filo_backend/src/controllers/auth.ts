@@ -7,14 +7,15 @@ import { extractBearer } from "@/utils/helpers";
 const REFRESH_COOKIE = "user_refresh_token";
 const ACCESS_COOKIE = "user_access_token";
 
-const cookieOptions = (maxAgeMs: number) => ({
+const baseCookieOptions = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
   sameSite: "lax" as const,
-  maxAge: maxAgeMs,
   domain: process.env.NODE_ENV === "production" ? process.env.COOKIE_DOMAIN : undefined,
   path: "/",
-});
+};
+
+const cookieOptions = (maxAgeMs: number) => ({ ...baseCookieOptions, maxAge: maxAgeMs });
 
 export class AuthController {
   private authService: AuthService;
@@ -100,8 +101,8 @@ export class AuthController {
     const refreshToken: string | undefined = req.cookies?.[REFRESH_COOKIE] ?? extractBearer(req);
     await this.authService.logout(refreshToken);
 
-    res.clearCookie(ACCESS_COOKIE);
-    res.clearCookie(REFRESH_COOKIE);
+    res.clearCookie(ACCESS_COOKIE, baseCookieOptions);
+    res.clearCookie(REFRESH_COOKIE, baseCookieOptions);
 
     res.json({ status: "success", message: "Logged out successfully" });
   });
@@ -109,8 +110,8 @@ export class AuthController {
   logoutAll = asyncHandler(async (req: Request, res: Response) => {
     await this.authService.logoutAll(req.user?.id!);
 
-    res.clearCookie(ACCESS_COOKIE);
-    res.clearCookie(REFRESH_COOKIE);
+    res.clearCookie(ACCESS_COOKIE, baseCookieOptions);
+    res.clearCookie(REFRESH_COOKIE, baseCookieOptions);
 
     res.json({ status: "success", message: "Logged out from all devices successfully" });
   });
