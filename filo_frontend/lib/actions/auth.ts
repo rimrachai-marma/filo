@@ -267,9 +267,15 @@ export async function saveTokens(accessToken: string, refreshToken: string, kind
   store.set(`${kind}_refresh_token`, refreshToken, cookieOptions(REFRESH_TOKEN_MAX_AGE));
 }
 
+// export async function clearTokens(kind: TokenKind = "user") {
+//   const store = await cookies();
+
+//   store.set(`${kind}_access_token`, "", { ...baseCookieAttrs, maxAge: 0 });
+//   store.set(`${kind}_refresh_token`, "", { ...baseCookieAttrs, maxAge: 0 });
+// }
+
 export async function clearTokens(kind: TokenKind = "user") {
   const store = await cookies();
-
-  store.set(`${kind}_access_token`, "", { ...baseCookieAttrs, maxAge: 0 });
-  store.set(`${kind}_refresh_token`, "", { ...baseCookieAttrs, maxAge: 0 });
+  store.delete({ name: `${kind}_access_token`, ...baseCookieAttrs });
+  store.delete({ name: `${kind}_refresh_token`, ...baseCookieAttrs });
 }
