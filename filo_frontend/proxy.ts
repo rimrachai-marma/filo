@@ -78,8 +78,8 @@ export async function proxy(req: NextRequest) {
 
       const response = NextResponse.redirect(loginUrl);
 
-      store.set("admin_access_token", "", { ...baseCookieAttrs, maxAge: 0 });
-      store.set("admin_refresh_token", "", { ...baseCookieAttrs, maxAge: 0 });
+      response.cookies.delete({ name: "admin_access_token", ...baseCookieAttrs });
+      response.cookies.delete({ name: "admin_refresh_token", ...baseCookieAttrs });
 
       return response;
     }
@@ -118,8 +118,8 @@ export async function proxy(req: NextRequest) {
 
       const response = NextResponse.redirect(loginUrl);
 
-      store.set("user_access_token", "", { ...baseCookieAttrs, maxAge: 0 });
-      store.set("user_refresh_token", "", { ...baseCookieAttrs, maxAge: 0 });
+      response.cookies.delete({ name: "user_access_token", ...baseCookieAttrs });
+      response.cookies.delete({ name: "user_refresh_token", ...baseCookieAttrs });
 
       return response;
     }
