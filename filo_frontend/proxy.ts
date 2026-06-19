@@ -5,14 +5,19 @@ import { cookies } from "next/headers";
 import { User, Admin } from "./types";
 import { adminTokenVerify, userTokenVerify } from "./lib/actions/auth";
 
-const cookieOptions = (maxAgeSeconds: number) => ({
+const baseCookieAttrs = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
   sameSite: "lax" as const,
   domain: process.env.NODE_ENV === "production" ? process.env.COOKIE_DOMAIN : undefined,
   path: "/",
+};
+
+const cookieOptions = (maxAgeSeconds: number) => ({
+  ...baseCookieAttrs,
   maxAge: maxAgeSeconds,
 });
+
 const ACCESS_TOKEN_MAX_AGE = 15 * 60; // 15 minutes, in seconds
 const REFRESH_TOKEN_MAX_AGE = 30 * 24 * 60 * 60; // 30 days, in seconds
 
@@ -73,8 +78,8 @@ export async function proxy(req: NextRequest) {
 
       const response = NextResponse.redirect(loginUrl);
 
-      response.cookies.delete("admin_access_token");
-      response.cookies.delete("admin_refresh_token");
+      store.set("admin_access_token", "", { ...baseCookieAttrs, maxAge: 0 });
+      store.set("admin_refresh_token", "", { ...baseCookieAttrs, maxAge: 0 });
 
       return response;
     }
@@ -113,8 +118,8 @@ export async function proxy(req: NextRequest) {
 
       const response = NextResponse.redirect(loginUrl);
 
-      response.cookies.delete("user_access_token");
-      response.cookies.delete("user_refresh_token");
+      store.set("user_access_token", "", { ...baseCookieAttrs, maxAge: 0 });
+      store.set("user_refresh_token", "", { ...baseCookieAttrs, maxAge: 0 });
 
       return response;
     }
