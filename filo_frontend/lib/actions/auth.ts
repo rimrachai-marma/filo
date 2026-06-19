@@ -222,7 +222,7 @@ export async function userLogoutAllDevices(): Promise<MutationState> {
 }
 
 export async function adminLogout(): Promise<MutationState> {
-  const result = await post({ path: "/admin/logout" });
+  const result = await post({ path: "/admin/logout", tokenKind: "admin" });
 
   if (result?.status === "success") {
     await clearTokens("admin");
@@ -233,7 +233,7 @@ export async function adminLogout(): Promise<MutationState> {
 }
 
 export async function adminLogoutAllDevices(): Promise<MutationState> {
-  const result = await post({ path: "/admin/logout-all" });
+  const result = await post({ path: "/admin/logout-all", tokenKind: "admin" });
 
   if (result?.status === "success") {
     await clearTokens("admin");
