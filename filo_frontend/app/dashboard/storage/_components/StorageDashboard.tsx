@@ -99,17 +99,14 @@ export default function StorageDashboard({ stats }: { stats: StorageStats }) {
         ) : (
           <div>
             {stats.topFiles.map((f) => (
-              <div
-                key={f.id}
-                className="flex items-center justify-between px-5 py-3 border-b border-border last:border-0"
-              >
-                <div className="flex items-center gap-2 min-w-0">
-                  <span style={{ color: TYPE_META[f.type].color }}>{TYPE_META[f.type].icon}</span>
-                  <span className="text-sm text-text truncate">{f.name}</span>
-                </div>
-                <span className="text-xs text-text-muted font-mono shrink-0 ml-3">
-                  {formatData(BigInt(f.sizeBytes))}
+              <div key={f.id} className="flex items-center gap-3 px-5 py-3 border-b border-border last:border-0">
+                <span className="shrink-0" style={{ color: TYPE_META[f.type].color }}>
+                  {TYPE_META[f.type].icon}
                 </span>
+
+                <span className="flex-1 min-w-0 text-sm text-text truncate">{f.name}</span>
+
+                <span className="text-xs text-text-muted font-mono shrink-0">{formatData(BigInt(f.sizeBytes))}</span>
               </div>
             ))}
           </div>

@@ -19,7 +19,6 @@ export default function SharesList({ links }: { links: ShareLink[] }) {
 
   const handleRevoke = (id: string) => {
     setRevokingId(id);
-
     React.startTransition(() => {
       dispatch({ id });
     });
@@ -61,7 +60,7 @@ export default function SharesList({ links }: { links: ShareLink[] }) {
             return (
               <div
                 key={link.id}
-                className={`flex items-center gap-3 px-4 py-3 border-b border-border last:border-0 bg-surface transition-opacity ${
+                className={`flex items-center gap-2 px-4 py-3 border-b border-border last:border-0 bg-surface transition-opacity ${
                   isRevokingCurrent ? "opacity-50" : ""
                 }`}
               >
@@ -78,7 +77,9 @@ export default function SharesList({ links }: { links: ShareLink[] }) {
                 </div>
 
                 {link.expiresAt && (
-                  <span className={`text-[10px] shrink-0 ${isExpired ? "text-error" : "text-text-muted"}`}>
+                  <span
+                    className={`text-[10px] shrink-0 hidden sm:block ${isExpired ? "text-error" : "text-text-muted"}`}
+                  >
                     {isExpired ? "Expired" : `Exp. ${new Date(link.expiresAt).toLocaleDateString()}`}
                   </span>
                 )}

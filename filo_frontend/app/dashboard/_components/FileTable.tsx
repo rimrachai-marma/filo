@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
@@ -94,9 +94,7 @@ export function FileTable({ files }: Props) {
     if (!ctxFile) return;
     const handleOutsideClick = (e: MouseEvent) => {
       if (triggerRef.current?.contains(e.target as Node)) return;
-      if (ctxMenuRef.current && !ctxMenuRef.current.contains(e.target as Node)) {
-        closeCtxMenu();
-      }
+      if (ctxMenuRef.current && !ctxMenuRef.current.contains(e.target as Node)) closeCtxMenu();
     };
     document.addEventListener("mousedown", handleOutsideClick);
     return () => document.removeEventListener("mousedown", handleOutsideClick);
@@ -205,15 +203,24 @@ export function FileTable({ files }: Props) {
 
       <section>
         <h2 className="text-xs font-semibold uppercase tracking-wider mb-3 text-text-muted">Files ({files.length})</h2>
-        <div className="rounded-2xl overflow-hidden border border-border">
-          <table className="w-full">
+
+        <div className="rounded-2xl overflow-hidden border border-border overflow-x-auto">
+          <table className="w-full min-w-[420px]">
             <thead>
               <tr className="bg-surface border-b border-border">
-                {["Name", "Type", "Size", "Uploaded", ""].map((h) => (
-                  <th key={h} className="px-4 py-3 text-left text-xs font-medium text-text-muted">
-                    {h}
-                  </th>
-                ))}
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-muted">Name</th>
+
+                {/* Type — hidden below sm (640px) */}
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-muted hidden sm:table-cell">Type</th>
+
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-muted">Size</th>
+
+                {/* Uploaded — hidden below md (768px) */}
+                <th className="px-4 py-3 text-left text-xs font-medium text-text-muted hidden md:table-cell">
+                  Uploaded
+                </th>
+
+                <th className="px-4 py-3" />
               </tr>
             </thead>
             <tbody>
@@ -232,15 +239,22 @@ export function FileTable({ files }: Props) {
                       borderBottom: i < files.length - 1 ? "1px solid var(--color-border)" : "none",
                     }}
                   >
-                    <td className="px-4 py-3">
+                    {/* Name — min-w-0 lets this flex child actually shrink */}
+                    <td className="px-4 py-3 min-w-0">
                       <div className="flex items-center gap-2.5">
-                        <FileIcon type={file.type} />
-                        <span className="text-sm font-medium truncate max-w-xs text-text">{file.name}</span>
+                        <span className="shrink-0">
+                          <FileIcon type={file.type} />
+                        </span>
+                        <span className="text-sm font-medium truncate max-w-[120px] sm:max-w-[200px] md:max-w-xs text-text">
+                          {file.name}
+                        </span>
                       </div>
                     </td>
-                    <td className="px-4 py-3">
+
+                    {/* Type — hidden on mobile */}
+                    <td className="px-4 py-3 hidden sm:table-cell">
                       <span
-                        className="text-xs px-2 py-0.5 rounded-md font-mono"
+                        className="text-xs px-2 py-0.5 rounded-md font-mono whitespace-nowrap"
                         style={{
                           background: `${TYPE_COLOR[file.type] ?? "#888"}15`,
                           color: TYPE_COLOR[file.type] ?? "#888",
@@ -249,39 +263,56 @@ export function FileTable({ files }: Props) {
                         {file.type}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-xs text-text-muted">{formatData(BigInt(file.sizeBytes))}</td>
-                    <td className="px-4 py-3 text-xs text-text-muted">{fmtDate(file.createdAt)}</td>
+
+                    {/* Size */}
+                    <td className="px-4 py-3 text-xs text-text-muted whitespace-nowrap">
+                      {formatData(BigInt(file.sizeBytes))}
+                    </td>
+
+                    {/* Uploaded — hidden on mobile */}
+                    <td className="px-4 py-3 text-xs text-text-muted whitespace-nowrap hidden md:table-cell">
+                      {fmtDate(file.createdAt)}
+                    </td>
+
+                    {/* Actions */}
                     <td className="px-4 py-3">
-                      <div className="flex justify-end items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex justify-end items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        {/* Download always visible */}
                         <RowBtn title="Download" onClick={() => handleDownload(file)}>
                           {pendingDownload === file.id ? <Spinner size={12} /> : <DownloadIcon size={12} />}
                         </RowBtn>
-                        <RowBtn title="Move" onClick={() => openModal("move", file)}>
+
+                        {/* Secondary actions hidden on mobile — reachable via the ⋮ context menu */}
+                        <RowBtn title="Move" onClick={() => openModal("move", file)} className="hidden sm:flex">
                           <MoveIcon size={12} />
                         </RowBtn>
-                        <RowBtn title="Copy to…" onClick={() => openModal("copy", file)}>
+                        <RowBtn title="Copy to…" onClick={() => openModal("copy", file)} className="hidden sm:flex">
                           <CopyIcon size={12} />
                         </RowBtn>
-                        <RowBtn title="Rename" onClick={() => openModal("rename", file, file.name)}>
+                        <RowBtn
+                          title="Rename"
+                          onClick={() => openModal("rename", file, file.name)}
+                          className="hidden sm:flex"
+                        >
                           <PencilIcon size={12} />
                         </RowBtn>
-                        <RowBtn title="Share" onClick={() => openShare(file)}>
+                        <RowBtn title="Share" onClick={() => openShare(file)} className="hidden sm:flex">
                           <Share2Icon size={12} />
                         </RowBtn>
+
+                        {/* ⋮ always visible — opens the full context menu */}
                         <button
                           style={{ anchorName } as React.CSSProperties}
                           onClick={(e) => {
-                            if (ctxFile?.id === file.id) {
-                              closeCtxMenu();
-                            } else {
-                              openCtxMenu(file, e.currentTarget);
-                            }
+                            if (ctxFile?.id === file.id) closeCtxMenu();
+                            else openCtxMenu(file, e.currentTarget);
                           }}
                           className="p-1.5 rounded-lg bg-surface-3 text-text-muted cursor-pointer"
                           title="More"
                         >
                           <MoreVerticalIcon size={12} />
                         </button>
+
                         <RowBtn title="Delete" onClick={() => openModal("delete", file)} danger>
                           <Trash2Icon size={12} />
                         </RowBtn>
@@ -344,7 +375,6 @@ export function FileTable({ files }: Props) {
             <Alert type="error">{renameState.message}</Alert>
           </div>
         )}
-
         <Input
           value={nameVal}
           onChange={(e) => setNameVal(e.target.value)}
@@ -368,7 +398,6 @@ export function FileTable({ files }: Props) {
             <Alert type="error">{deleteState.message}</Alert>
           </div>
         )}
-
         <p className="text-sm mb-5 text-text-muted">
           Delete <strong className="text-text">{selected?.name}</strong>? This cannot be undone.
         </p>
@@ -389,7 +418,6 @@ export function FileTable({ files }: Props) {
             <Alert type="error">{moveState.message}</Alert>
           </div>
         )}
-
         <p className="text-sm mb-3 text-text-muted">
           Move <strong className="text-text">{selected?.name}</strong> to:
         </p>
@@ -411,7 +439,6 @@ export function FileTable({ files }: Props) {
             <Alert type="error">{copyState.message}</Alert>
           </div>
         )}
-
         <p className="text-sm mb-3 text-text-muted">
           Copy <strong className="text-text">{selected?.name}</strong> to:
         </p>
@@ -438,23 +465,26 @@ export function FileTable({ files }: Props) {
   );
 }
 
-// ─── Row button ───────────────────────────────────────────────────────────────
 function RowBtn({
   title,
   onClick,
   danger = false,
   children,
+  className = "",
 }: {
   title: string;
   onClick: () => void;
   danger?: boolean;
   children: React.ReactNode;
+  className?: string;
 }) {
   return (
     <button
       title={title}
       onClick={onClick}
-      className={`p-1.5 rounded-lg border-none cursor-pointer ${danger ? "bg-[rgba(248,113,113,0.1)] text-error" : "bg-surface-3 text-text-muted"}`}
+      className={`p-1.5 rounded-lg border-none cursor-pointer flex items-center justify-center ${
+        danger ? "bg-[rgba(248,113,113,0.1)] text-error" : "bg-surface-3 text-text-muted"
+      } ${className}`}
     >
       {children}
     </button>

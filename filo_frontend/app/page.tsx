@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { ArrowRight, FolderOpen } from "lucide-react";
 import HeroSection from "@/components/landing/HeroSection";
@@ -8,6 +9,9 @@ import FeaturesSection from "@/components/landing/FeaturesSection";
 export default function Home() {
   return (
     <>
+      <Suspense fallback={null}>
+        <BackendWaker />
+      </Suspense>
       <main className="min-h-screen bg-background text-text font-body">
         {/* ── NAV ── */}
         <nav className="fixed top-0 inset-x-0 z-50 flex items-center justify-between px-6 py-4 border-b border-border bg-background/80 backdrop-blur-md">

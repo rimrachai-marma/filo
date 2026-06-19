@@ -1,11 +1,11 @@
+import React, { Suspense } from "react";
+
 import { get } from "@/lib/api.server";
 import type { StorageStats } from "@/types";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { Suspense } from "react";
 import { SidebarTrigger } from "@/components/Sidebar/SidebarTrigger";
 import StorageDashboard from "./_components/StorageDashboard";
-import { SubscriptionPageSkeleton } from "@/components/ui/Skeleton";
-import React from "react";
+import { StorageDashboardSkeleton } from "@/components/ui/Skeleton";
 
 export default function StoragePage() {
   return (
@@ -16,7 +16,7 @@ export default function StoragePage() {
       </div>
 
       <div className="p-6 max-w-4xl w-full mx-auto">
-        <Suspense fallback={<SubscriptionPageSkeleton />}>
+        <Suspense fallback={<StorageDashboardSkeleton />}>
           <ErrorBoundary>
             <StorageStatsLoader />
           </ErrorBoundary>
