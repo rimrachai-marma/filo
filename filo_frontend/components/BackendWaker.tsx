@@ -4,7 +4,9 @@ import React from "react";
 
 export default function BackendWaker() {
   React.useEffect(() => {
-    async function wakeBackend() {
+    (async () => {
+      console.log("Pinging backend...");
+
       try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/health`);
 
@@ -12,11 +14,9 @@ export default function BackendWaker() {
 
         console.log("Backend response:", data);
       } catch (error) {
-        console.error("Backend wake failed:", error);
+        console.error("Backend ping failed:", error);
       }
-    }
-
-    wakeBackend();
+    })();
   }, []);
 
   return null;
