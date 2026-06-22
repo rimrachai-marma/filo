@@ -3,6 +3,7 @@
 Filo is a production-ready SaaS file storage platform with tiered subscription plans, folder nesting, multipart uploads to Cloudflare R2, and shareable links. Built with a **Bun + Express + Prisma** backend and a **Next.js 16 + Tailwind CSS** frontend.
 
 Filo follows a classic SaaS model — Free, Silver, Gold, and Diamond plans enforce real limits (storage quotas, folder counts, nesting depth, file type restrictions, and per-folder file caps) all validated server-side so they can't be bypassed.
+
 It's missing a payment integration (like Stripe) to be fully commercial, but the entire subscription and plan enforcement architecture is in place; plugging in a payment provider like Stripe would be straightforward.
 
 ---
