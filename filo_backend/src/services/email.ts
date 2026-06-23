@@ -6,7 +6,7 @@ export class EmailService {
   private readonly appUrl: string;
 
   constructor() {
-    this.from = process.env.RESEND_FROM || "Filo <onboarding@resend.dev>";
+    this.from = process.env.RESEND_FROM || "Filo <noreply@filo.rimrachai.com>"
     this.appUrl = process.env.APP_URL || "http://localhost:3000";
 
     if (process.env.RESEND_API_KEY) {
