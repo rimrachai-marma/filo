@@ -82,58 +82,55 @@ export async function getAuthUser() {
 }
 
 export async function userTokenVerify(
-  token: string,
+  refreshToken: string,
+  accessToken?: string,
 ): Promise<{ user: User; newTokens?: { access: string; refresh: string } } | null> {
   try {
-    const response = await fetch(`${BASE_URL}/auth/verify`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (response.ok) {
-      const user = (await response.json())?.data ?? null;
-      return user ? { user } : null;
-    }
-
-    // Access token expired — attempt refresh
-    if (response.status === 401) {
-      const store = await cookies();
-      store.delete("user_access_token");
-      const refreshToken = store.get("user_refresh_token")?.value;
-
-      if (!refreshToken) return null;
-
-      const refreshResponse = await fetch(`${BASE_URL}/auth/refresh`, {
-        method: "POST",
-        headers: { Cookie: `user_refresh_token=${refreshToken}` },
-      });
-
-      if (!refreshResponse.ok) return null;
-
-      const refreshJson = await refreshResponse.json();
-      const newAccessToken: string = refreshJson?.data?.accessToken?.token;
-      const newRefreshToken: string = refreshJson?.data?.refreshToken?.token;
-
-      if (!newAccessToken) return null;
-
-      await saveTokens(newAccessToken, newRefreshToken, "user");
-
-      const retryResponse = await fetch(`${BASE_URL}/auth/verify`, {
+    if (accessToken) {
+      const response = await fetch(`${BASE_URL}/auth/verify`, {
         headers: {
-          Authorization: `Bearer ${newAccessToken}`,
+          Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },
       });
 
-      if (!retryResponse.ok) return null;
+      if (response.ok) {
+        const user = (await response.json())?.data ?? null;
+        return user ? { user } : null;
+      }
 
-      const user = (await retryResponse.json())?.data ?? null;
-      return user ? { user, newTokens: { access: newAccessToken, refresh: newRefreshToken } } : null;
+      // Not 401 — some other error
+      if (response.status !== 401) return null;
     }
 
-    return null;
+    // Access token missing or expired — attempt refresh directly
+
+    const refreshResponse = await fetch(`${BASE_URL}/auth/refresh`, {
+      method: "POST",
+      headers: { Cookie: `user_refresh_token=${refreshToken}` },
+    });
+
+    if (!refreshResponse.ok) return null;
+
+    const refreshJson = await refreshResponse.json();
+    const newAccessToken: string = refreshJson?.data?.accessToken?.token;
+    const newRefreshToken: string = refreshJson?.data?.refreshToken?.token;
+
+    await saveTokens(newAccessToken, newRefreshToken, "user");
+
+    const retryResponse = await fetch(`${BASE_URL}/auth/verify`, {
+      headers: {
+        Authorization: `Bearer ${newAccessToken}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!retryResponse.ok) return null;
+
+    const user = (await retryResponse.json())?.data ?? null;
+
+    return user ? { user, newTokens: { access: newAccessToken, refresh: newRefreshToken } } : null;
+
   } catch (error) {
     console.error("Auth validation failed: ", error);
     return null;
@@ -141,58 +138,51 @@ export async function userTokenVerify(
 }
 
 export async function adminTokenVerify(
-  token: string,
+  refreshToken: string,
+  accessToken?: string,
 ): Promise<{ admin: Admin; newTokens?: { access: string; refresh: string } } | null> {
   try {
-    const response = await fetch(`${BASE_URL}/admin/verify`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (response.ok) {
-      const admin = (await response.json())?.data ?? null;
-      return admin ? { admin } : null;
-    }
-
-    // Access token expired — attempt refresh
-    if (response.status === 401) {
-      const store = await cookies();
-      store.delete("admin_access_token");
-      const refreshToken = store.get("admin_refresh_token")?.value;
-
-      if (!refreshToken) return null;
-
-      const refreshResponse = await fetch(`${BASE_URL}/admin/refresh`, {
-        method: "POST",
-        headers: { Cookie: `admin_refresh_token=${refreshToken}` },
-      });
-
-      if (!refreshResponse.ok) return null;
-
-      const refreshJson = await refreshResponse.json();
-      const newAccessToken: string = refreshJson?.data?.accessToken?.token;
-      const newRefreshToken: string = refreshJson?.data?.refreshToken?.token;
-
-      if (!newAccessToken) return null;
-
-      const retryResponse = await fetch(`${BASE_URL}/admin/verify`, {
+    if (accessToken) {
+      const response = await fetch(`${BASE_URL}/admin/verify`, {
         headers: {
-          Authorization: `Bearer ${newAccessToken}`,
+          Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },
       });
 
-      if (!retryResponse.ok) return null;
+      if (response.ok) {
+        const admin = (await response.json())?.data ?? null;
+        return admin ? { admin } : null;
+      }
 
-      await saveTokens(newAccessToken, newRefreshToken, "admin");
-
-      const admin = (await retryResponse.json())?.data ?? null;
-      return admin ? { admin, newTokens: { access: newAccessToken, refresh: newRefreshToken } } : null;
+      // Not 401 — some other error
+      if (response.status !== 401) return null;
     }
 
-    return null;
+    const refreshResponse = await fetch(`${BASE_URL}/admin/refresh`, {
+      method: "POST",
+      headers: { Cookie: `admin_refresh_token=${refreshToken}` },
+    });
+
+    if (!refreshResponse.ok) return null;
+
+    const refreshJson = await refreshResponse.json();
+    const newAccessToken: string = refreshJson?.data?.accessToken?.token;
+    const newRefreshToken: string = refreshJson?.data?.refreshToken?.token;
+
+    const retryResponse = await fetch(`${BASE_URL}/admin/verify`, {
+      headers: {
+        Authorization: `Bearer ${newAccessToken}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!retryResponse.ok) return null;
+
+    await saveTokens(newAccessToken, newRefreshToken, "admin");
+
+    const admin = (await retryResponse.json())?.data ?? null;
+    return admin ? { admin, newTokens: { access: newAccessToken, refresh: newRefreshToken } } : null; 
   } catch (error) {
     console.error("Auth validation failed: ", error);
     return null;

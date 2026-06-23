@@ -55,12 +55,13 @@ export async function proxy(req: NextRequest) {
 
   const cookieStore = await cookies();
   if (isAdminRoute) {
-    const adminAccessToken = cookieStore.get("admin_access_token")?.value;
+    const accessToken = cookieStore.get("admin_access_token")?.value;
+    const refreshToken = cookieStore.get("admin_refresh_token")?.value;
 
     let admin: Admin | null = null;
     let newTokens: { access: string; refresh: string } | undefined;
-    if (adminAccessToken) {
-      const result = await adminTokenVerify(adminAccessToken);
+    if (refreshToken) {
+      const result = await adminTokenVerify(refreshToken, accessToken);
 
       admin = result?.admin ?? null;
       newTokens = result?.newTokens;
@@ -95,12 +96,13 @@ export async function proxy(req: NextRequest) {
   }
 
   if (isUserRoute) {
-    const userAccessToken = cookieStore.get("user_access_token")?.value;
+    const accessToken = cookieStore.get("user_access_token")?.value;
+    const refreshToken = cookieStore.get("user_refresh_token")?.value;
 
     let user: User | null = null;
     let newTokens: { access: string; refresh: string } | undefined;
-    if (userAccessToken) {
-      const result = await userTokenVerify(userAccessToken);
+    if (refreshToken) {
+      const result = await userTokenVerify(refreshToken, accessToken);
 
       user = result?.user ?? null;
       newTokens = result?.newTokens;
